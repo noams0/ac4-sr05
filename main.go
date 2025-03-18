@@ -8,40 +8,33 @@ import (
 	"time"
 )
 
-// deux gardes => deux go routines
-
 func main() {
-	var mutex sync.Mutex
+	var mutex sync.Mutex // Atomicité
 	message := "Message périodique"
-	inputChan := make(chan string)
 
-	// Lecture asynchrone de l'entrée standard
-	go readInput(inputChan)
-
-	ticker := time.NewTicker(5 * time.Second)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
+	go func() {
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan() {
 			mutex.Lock()
-			fmt.Println(message) // IMPORTANT : affiché sur stdout pour être récupéré par un autre programme
-			mutex.Unlock()
-
-		case msg := <-inputChan:
-			mutex.Lock()
-			message = msg
-			fmt.Println(message)                                       // Envoie sur stdout pour que l'autre programme puisse le recevoir
-			fmt.Fprintln(os.Stderr, "Nouveau message reçu :", message) // Indication sur stderr
+			//fmt.Fprintln(os.Stderr, ".")
+			//time.Sleep(10 * time.Second)
+			message = scanner.Text()
+			fmt.Fprintln(os.Stderr, "Sortie erreur : nouveau message reçu:", message)
 			mutex.Unlock()
 		}
-	}
-}
+	}()
 
-// Fonction pour lire l'entrée standard de manière asynchrone
-func readInput(ch chan<- string) {
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() { //tant qu'il scanne
-		ch <- scanner.Text() // Envoie la ligne lue au canal
-	}
+	go func() {
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+
+		for range ticker.C {
+			mutex.Lock()
+			//fmt.Fprintln(os.Stderr, ".")
+			//time.Sleep(10 * time.Second)
+			fmt.Println(message) // S'assure que le message actuel est bien celui à afficher
+			mutex.Unlock()
+		}
+	}()
+	select {}
 }
