@@ -12,41 +12,51 @@ func main() {
 	var mutex sync.Mutex
 	message := "Message périodique"
 	var wg sync.WaitGroup
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
+	// Channel pour gérer la concurrence (overkill mais permet d'explorer les possibilités de Go dès mtn)
+	syncChan := make(chan struct{}, 1)
+	syncChan <- struct{}{}
 
 	wg.Add(2)
 
-	// Goroutine pour lire l'entrée standard (asynchrone)
+	// goroutine => réception
 	go func() {
 		defer wg.Done()
 		scanner := bufio.NewScanner(os.Stdin)
 		for scanner.Scan() {
+			<-syncChan // concurrence : attendre
 			mutex.Lock()
-			// Décommenter pour tester l'atomicité :
-			// fmt.Fprintln(os.Stderr, ".")
-			// time.Sleep(10 * time.Second)
+
+			// décommenter => tester l'atomicité :
+			fmt.Fprintln(os.Stderr, ".")
+			time.Sleep(5 * time.Second)
 
 			message = scanner.Text()
 			fmt.Fprintln(os.Stderr, "nouveau message reçu:", message)
+
 			mutex.Unlock()
+			syncChan <- struct{}{} // concurrence : libérez
 		}
 	}()
 
-	// Goroutine pour afficher périodiquement le message
+	// Goroutine => émission
 	go func() {
 		defer wg.Done()
-		ticker := time.NewTicker(5 * time.Second)
-		defer ticker.Stop()
-
 		for range ticker.C {
+			<-syncChan // concurrence : attentdre
 			mutex.Lock()
-			// Décommenter pour tester l'atomicité :
-			// fmt.Fprintln(os.Stderr, ".")
-			// time.Sleep(10 * time.Second)
+
+			// décommenter => tester l'atomicité :
+			fmt.Fprintln(os.Stderr, "..")
+			time.Sleep(5 * time.Second)
 			fmt.Println(message)
+
 			mutex.Unlock()
+			syncChan <- struct{}{} // concurrence : libérez
 		}
 	}()
 
-	//Overkill mais le programme ne s'arrêtera que quand les deux go routines s'arrêteront
 	wg.Wait()
 }
