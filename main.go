@@ -30,8 +30,8 @@ func main() {
 			mutex.Lock()
 
 			// décommenter => tester l'atomicité :
-			fmt.Fprintln(os.Stderr, ".")
-			time.Sleep(5 * time.Second)
+			//fmt.Fprintln(os.Stderr, ".")
+			//time.Sleep(5 * time.Second)
 
 			message = scanner.Text()
 			fmt.Fprintln(os.Stderr, "nouveau message reçu:", message)
@@ -49,8 +49,8 @@ func main() {
 			mutex.Lock()
 
 			// décommenter => tester l'atomicité :
-			fmt.Fprintln(os.Stderr, "..")
-			time.Sleep(5 * time.Second)
+			//fmt.Fprintln(os.Stderr, "..")
+			//time.Sleep(5 * time.Second)
 			fmt.Println(message)
 
 			mutex.Unlock()
