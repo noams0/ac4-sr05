@@ -18,7 +18,8 @@ Le programme repose sur **deux goroutines concurrentes** qui assurent les foncti
     - Toutes les 5 secondes, affiche le message courant sur **stdout**.
 
 **Synchronisation & atomicité** :
-- Un **channel (`syncChan`)** assure que seule une action (réception ou émission) se déroule à la fois.
+- Un **channel (`syncChan`)** assure que seule une action (réception ou émission) se déroule à la fois. C'est un peu
+overkill mais ça permet d'explorer les possibilités de Go, et de pouvoir rapidement passer à du non-séquentielle.
 
 **Respect des consignes**
 - **Lecture asynchrone** : évite le polling inutile (attente bloquante).
