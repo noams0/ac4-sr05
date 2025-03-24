@@ -86,9 +86,8 @@ On peut tester cela en ajoutant un délai de 10s dans chaque action :
 fmt.Fprintln(os.Stderr, ".")
 time.Sleep(10 * time.Second)
 ```
-Puis, **relance le test** :
+Puis, **relancez le test** :
 ```sh
 ./SR05_act_4 | ./SR05_act_4
 ```
-Tu devrais voir que l’émission et la réception sont bien **séquentielles**.
 
