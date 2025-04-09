@@ -9,14 +9,13 @@ import (
 )
 
 func main() {
-	var mutex sync.Mutex
 	message := "Message périodique"
 	var wg sync.WaitGroup
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
 	// Channel pour gérer la concurrence (overkill mais permet d'explorer les possibilités de Go dès mtn)
-	syncChan := make(chan struct{}, 1)
+	syncChan := make(chan struct{}, 1) //limité à 1 action
 	syncChan <- struct{}{}
 
 	wg.Add(2)
@@ -25,18 +24,12 @@ func main() {
 	go func() {
 		defer wg.Done()
 		scanner := bufio.NewScanner(os.Stdin)
-		for scanner.Scan() {
+		for scanner.Scan() { //Scanner.Scan permet la lecture bloquante
 			<-syncChan // concurrence : attendre
-			mutex.Lock()
-
-			// décommenter => tester l'atomicité :
-			//fmt.Fprintln(os.Stderr, ".")
-			//time.Sleep(5 * time.Second)
 
 			message = scanner.Text()
 			fmt.Fprintln(os.Stderr, "nouveau message reçu:", message)
 
-			mutex.Unlock()
 			syncChan <- struct{}{} // concurrence : libérez
 		}
 	}()
@@ -46,14 +39,9 @@ func main() {
 		defer wg.Done()
 		for range ticker.C {
 			<-syncChan // concurrence : attentdre
-			mutex.Lock()
 
-			// décommenter => tester l'atomicité :
-			//fmt.Fprintln(os.Stderr, "..")
-			//time.Sleep(5 * time.Second)
 			fmt.Println(message)
 
-			mutex.Unlock()
 			syncChan <- struct{}{} // concurrence : libérez
 		}
 	}()
